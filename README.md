@@ -121,17 +121,62 @@ pip install -r requirements.txt
 
 ## 使用方法
 
-### 基本用法
+### 快速開始（推薦版本）
+
+#### 速度優先 - dance_speed_optimized.py
 
 ```bash
-# 使用優化版本
+# 1. 修改代碼中的路徑配置（第 47-49 行）
+# 編輯 dance_speed_optimized.py：
+#   INPUT_FOLDER = r"你的輸入資料夾路徑"
+#   OUTPUT_FOLDER = r"你的輸出資料夾路徑"
+
+# 2. 運行
+python dance_speed_optimized.py
+
+# 詳細說明請參閱：SPEED_OPTIMIZATION_GUIDE.md
+```
+
+**特點**：
+- ⚡ 高速處理（~8-12 FPS with GPU）
+- 🎯 單人舞蹈動作捕捉
+- 📊 自動 FPS 顯示和進度監控
+
+---
+
+#### 穩定性優先 - dance_stable.py
+
+```bash
+# 1. 修改代碼中的路徑配置（第 47-49 行）
+# 編輯 dance_stable.py：
+#   INPUT_FOLDER = r"你的輸入資料夾路徑"
+#   OUTPUT_FOLDER = r"你的輸出資料夾路徑"
+#   TEMP_FOLDER = r"你的臨時資料夾路徑"  # 存放中間結果
+
+# 2. 運行（三遍處理）
+python dance_stable.py
+
+# 詳細說明請參閱：STABLE_VERSION_GUIDE.md
+```
+
+**特點**：
+- 🎯 極高穩定性（消除抖動和跑偏）
+- 🔄 三遍處理（充分利用序列上下文）
+- 🔧 自動補洞和修正
+
+---
+
+### 基本用法（其他版本）
+
+```bash
+# 使用平衡版本（命令行參數）
 python dance_optimized.py -i /path/to/input -o /path/to/output
 
 # 使用原始版本（需要手動修改代碼中的路徑）
 python dance
 ```
 
-### 進階用法
+### 進階用法（dance_optimized.py）
 
 ```bash
 # 啟用嚴格無殘影模式
@@ -225,14 +270,143 @@ python dance_optimized.py --help
 - **更安全**：完善的錯誤處理和日誌記錄
 - **更易擴展**：面向對象設計使添加新功能更容易
 
+## 版本選擇指南
+
+專案提供多個版本以適應不同需求：
+
+### 🏃 dance_speed_optimized.py - 速度優先版本
+**最佳選擇**：需要高速處理、可接受輕微抖動
+
+**特點**：
+- ⚡ 追蹤優先策略（YOLO 每 6 幀刷新一次）
+- 🚀 GPU 加速（CUDA + FP16）
+- 🎯 單人舞蹈動作高速捕捉
+- ⏱️ 速度：~8-12 FPS (GPU) / ~2-3 FPS (CPU)
+
+**使用場景**：
+- 大量序列圖檔需要快速處理
+- 實時或準實時處理需求
+- 單人舞蹈動作捕捉
+
+**詳細說明**：請參閱 [SPEED_OPTIMIZATION_GUIDE.md](SPEED_OPTIMIZATION_GUIDE.md)
+
+---
+
+### 🎯 dance_stable.py - 穩定性優先版本
+**最佳選擇**：需要最高穩定性、不能接受抖動
+
+**特點**：
+- 🔄 三遍處理流程（充分利用序列上下文）
+- 📊 雙向 EMA 平滑 bbox 序列
+- 🌊 時序穩定化（光流對齊混合）
+- 🔧 一致性修補（補洞填充）
+- ⏱️ 速度：~2-3 FPS（三遍總計）
+
+**使用場景**：
+- 專業舞蹈分析，要求極高穩定性
+- 骨架檢測有抖動或跑偏問題
+- 需要序列級上下文推理
+- 處理完整序列後再參考修正
+
+**詳細說明**：請參閱 [STABLE_VERSION_GUIDE.md](STABLE_VERSION_GUIDE.md)
+
+---
+
+### 🌟 dance_enhanced.py - 增強版本（2025 最新技術）
+**最佳選擇**：需要多人支持、完整骨架推理、極致穩定性
+
+**特點**：
+- 👥 **多人模式支持（1-10 人）** - 確保所有人都被捕捉到
+- 🧠 **骨架推理補全** - 使用時序信息推斷缺失關鍵點
+- 🎛️ **Kalman 濾波器 bbox 平滑** - 優於傳統 EMA（MSE 0.49）
+- 🔍 **SoftNMS 處理遮擋** - mAP 提升 10.17%
+- 🤖 **自動調參機制** - 根據場景自適應調整參數
+- 🛡️ **全圖多人保底** - 避免漏檢
+- 📏 **小人物專用高解析度** - 確保遠處人物清晰
+- ⏱️ 速度：~1.5-2 FPS（三遍總計，多人）
+
+**使用場景**：
+- **群舞、多人表演**（2-10 人同時在場）
+- 需要推論完整骨架（無缺失）
+- 處理重疊和遮擋
+- 需要極致穩定性 + 多人支持
+- 暗光或高動態場景（自動調參）
+
+**整合技術**（基於 2024-2025 年研究）：
+- DWPose + RTMW（ICCV 2023 + arXiv 2025）
+- YOLOv8 + SoftNMS + OC-SORT（Sensors 2023）
+- Kalman 濾波器時序平滑（IEEE 2025）
+- PGKC 啟發的骨架推理補全（ScienceDirect 2025）
+- 擴散模型啟發的補洞策略
+
+**詳細說明**：請參閱 [ENHANCED_VERSION_GUIDE.md](ENHANCED_VERSION_GUIDE.md)
+**技術研究**：請參閱 [RESEARCH_2025.md](RESEARCH_2025.md)
+
+---
+
+### 🔧 dance_optimized.py - 平衡版本
+**最佳選擇**：通用場景，代碼結構清晰
+
+**特點**：
+- 📦 面向對象重構，代碼結構清晰
+- ⚙️ 完整的配置管理和命令行參數
+- 🛡️ 完善的錯誤處理和日誌
+- 📝 詳細的文檔和類型提示
+
+**使用場景**：
+- 需要清晰代碼結構便於二次開發
+- 通用姿態檢測需求
+- 學習和理解系統架構
+
+---
+
+### 📜 dance - 原始版本
+**最佳選擇**：需要保持與原始版本完全一致
+
+**特點**：
+- 原始實現，743 行單文件
+- 需要手動修改路徑
+- 功能完整但代碼結構較簡單
+
+---
+
+### 版本對比
+
+| 版本 | 速度 | 穩定性 | 多人支持 | 骨架補全 | 代碼結構 | 適用場景 |
+|------|------|--------|---------|---------|----------|----------|
+| `dance` | ⚡⚡ | ⭐⭐⭐ | 單人 | 無 | 簡單 | 原始版本保持一致 |
+| `dance_optimized.py` | ⚡⚡ | ⭐⭐⭐ | 單人 | 無 | 清晰 | 通用場景，易於開發 |
+| `dance_speed_optimized.py` | ⚡⚡⚡⚡ | ⭐⭐⭐ | 單人 | 補洞 | 清晰 | **高速單人舞蹈捕捉**（推薦）|
+| `dance_stable.py` | ⚡⚡ | ⭐⭐⭐⭐⭐ | 單人 | 補洞 | 清晰 | **極高穩定性需求**（推薦）|
+| **`dance_enhanced.py`** | ⚡⚡ | ⭐⭐⭐⭐⭐ | **✅ 1-10 人** | **✅ 推理+補洞** | 清晰 | **多人+完整骨架**（2025 最新）|
+
+**推薦選擇**：
+- 🚀 追求速度（單人） → `dance_speed_optimized.py`
+- 🎯 追求穩定（單人） → `dance_stable.py`
+- 👥 **多人表演** → **`dance_enhanced.py`**（新增）
+- 🧠 **完整骨架推理** → **`dance_enhanced.py`**（新增）
+- 🔧 二次開發 → `dance_optimized.py`
+
+---
+
 ## 文件結構
 
 ```
 openpose_newtest_dance/
-├── dance                    # 原始版本（需手動修改路徑）
-├── dance_optimized.py       # 優化版本（推薦使用）
-├── requirements.txt         # Python 依賴
-└── README.md               # 本文件
+├── dance                          # 原始版本（需手動修改路徑）
+├── dance_optimized.py             # 平衡版本（代碼結構清晰）
+├── dance_speed_optimized.py       # 速度優先版本（單人）
+├── dance_stable.py                # 穩定性優先版本（單人）
+├── dance_enhanced.py              # 增強版本（多人 + 2025 最新技術）⭐NEW
+├── requirements.txt               # Python 依賴
+├── .gitignore                     # Git 忽略文件
+├── README.md                      # 本文件
+├── OPTIMIZATION_SUMMARY.md        # 優化總結報告
+├── SPEED_OPTIMIZATION_GUIDE.md    # 速度優化詳細指南
+├── STABLE_VERSION_GUIDE.md        # 穩定性優化詳細指南
+├── ENHANCED_VERSION_GUIDE.md      # 增強版本完整指南 ⭐NEW
+├── RESEARCH_2025.md               # 2025 年技術研究報告 ⭐NEW
+└── MULTIPERSON_ENHANCEMENT_PLAN.md # 多人檢測增強計劃（研究文檔）
 ```
 
 ## 技術棧
