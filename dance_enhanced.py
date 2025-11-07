@@ -554,28 +554,32 @@ detector = None
 _detector_backend = ""
 
 try:
-    if DEVICE == "cuda":
-        try:
-            detector = DWposeDetector.from_pretrained("yzd-v/DWPose", device=DEVICE)
-            _detector_backend = f"DWPOSE:yzd-v/DWPose (CUDA)"
-        except:
-            detector = DWposeDetector.from_pretrained("yzd-v/DWPose")
-            _detector_backend = "DWPOSE:yzd-v/DWPose (CPU)"
-    else:
-        detector = DWposeDetector.from_pretrained("yzd-v/DWPose")
-        _detector_backend = "DWPOSE:yzd-v/DWPose (CPU)"
+    # 方法 1: 嘗試使用 easy_dwpose
+    try:
+        from easy_dwpose import DWposeDetector as EasyDWpose
+        if DEVICE == "cuda":
+            detector = EasyDWpose(device=DEVICE)
+            _detector_backend = "DWPOSE:easy_dwpose (CUDA)"
+        else:
+            detector = EasyDWpose(device="cpu")
+            _detector_backend = "DWPOSE:easy_dwpose (CPU)"
+    except ImportError:
+        # 方法 2: 使用 controlnet_aux 直接初始化
+        detector = DWposeDetector()
+        _detector_backend = "DWPOSE:controlnet_aux"
 except Exception as e1:
     try:
-        detector = DWposeDetector.from_pretrained()
-        _detector_backend = "DWPOSE:from_pretrained()"
-    except Exception as e2:
+        # 方法 3: 嘗試 OpenPose 作為替代
+        print(f"DWPose 載入失敗，改用 OpenPose: {type(e1).__name__}")
         try:
-            detector = DWposeDetector()
-            _detector_backend = "DWPOSE:constructor()"
-        except Exception as e3:
-            print(f"DWPose 載入失敗，改用 OpenPose: {type(e3).__name__}")
+            detector = OpenposeDetector.from_pretrained("lllyasviel/Annotators")
+            _detector_backend = "OPENPOSE:lllyasviel/Annotators"
+        except:
             detector = OpenposeDetector.from_pretrained("lllyasviel/ControlNet")
             _detector_backend = "OPENPOSE:lllyasviel/ControlNet"
+    except Exception as e2:
+        print(f"✗ 所有模型載入失敗: {type(e2).__name__}")
+        raise
 
 print(f"✓ 模型載入完畢: {_detector_backend}")
 

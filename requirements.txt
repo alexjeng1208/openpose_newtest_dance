@@ -8,6 +8,11 @@ Pillow>=10.0.0
 controlnet-aux>=0.0.7
 ultralytics>=8.0.0
 
+# Pose detection models (recommended)
+# Install easy-dwpose for better DWPose support:
+# pip install easy-dwpose
+# This provides ONNX-based DWPose without requiring MMDetection/MMCV/MMPose
+
 # Optional: for better performance
 # torch>=2.0.0  # If not already installed by controlnet-aux
 # torchvision>=0.15.0

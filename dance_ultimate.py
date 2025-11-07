@@ -201,19 +201,28 @@ dwpose_detector = None
 _dwpose_backend = ""
 
 try:
-    if DEVICE == "cuda":
-        try:
-            dwpose_detector = DWposeDetector.from_pretrained("yzd-v/DWPose", device=DEVICE)
-            _dwpose_backend = f"DWPOSE:yzd-v/DWPose (CUDA)"
-        except:
-            dwpose_detector = DWposeDetector.from_pretrained("yzd-v/DWPose")
-            _dwpose_backend = "DWPOSE:yzd-v/DWPose (CPU)"
-    else:
-        dwpose_detector = DWposeDetector.from_pretrained("yzd-v/DWPose")
-        _dwpose_backend = "DWPOSE:yzd-v/DWPose (CPU)"
-    print(f"✓ DWPose 載入完畢: {_dwpose_backend}")
+    # 方法 1: 嘗試使用 easy_dwpose
+    try:
+        from easy_dwpose import DWposeDetector as EasyDWpose
+        if DEVICE == "cuda":
+            dwpose_detector = EasyDWpose(device=DEVICE)
+            _dwpose_backend = f"DWPOSE:easy_dwpose (CUDA)"
+        else:
+            dwpose_detector = EasyDWpose(device="cpu")
+            _dwpose_backend = "DWPOSE:easy_dwpose (CPU)"
+        print(f"✓ DWPose 載入完畢: {_dwpose_backend}")
+    except ImportError:
+        # 方法 2: 使用 controlnet_aux 直接初始化
+        if DEVICE == "cuda":
+            dwpose_detector = DWposeDetector()
+            _dwpose_backend = "DWPOSE:controlnet_aux (CUDA)"
+        else:
+            dwpose_detector = DWposeDetector()
+            _dwpose_backend = "DWPOSE:controlnet_aux (CPU)"
+        print(f"✓ DWPose 載入完畢: {_dwpose_backend}")
 except Exception as e:
     print(f"✗ DWPose 載入失敗: {e}")
+    print(f"  提示: 請執行 'pip install easy-dwpose' 或確保 controlnet_aux 版本正確")
     dwpose_detector = None
 
 # OpenPose 載入（懶載入）
@@ -227,19 +236,25 @@ def _init_openpose_detector():
         return openpose_detector
 
     try:
-        if DEVICE == "cuda":
+        # 嘗試多個模型名稱
+        model_names = ["lllyasviel/Annotators", "lllyasviel/ControlNet"]
+        for model_name in model_names:
             try:
-                openpose_detector = OpenposeDetector.from_pretrained("lllyasviel/ControlNet", device=DEVICE)
-                _openpose_backend = "OPENPOSE:lllyasviel/ControlNet (CUDA)"
-            except:
-                openpose_detector = OpenposeDetector.from_pretrained("lllyasviel/ControlNet")
-                _openpose_backend = "OPENPOSE:lllyasviel/ControlNet (CPU)"
-        else:
-            openpose_detector = OpenposeDetector.from_pretrained("lllyasviel/ControlNet")
-            _openpose_backend = "OPENPOSE:lllyasviel/ControlNet (CPU)"
-        print(f"✓ OpenPose 載入完畢: {_openpose_backend}")
+                if DEVICE == "cuda":
+                    openpose_detector = OpenposeDetector.from_pretrained(model_name, device=DEVICE)
+                    _openpose_backend = f"OPENPOSE:{model_name} (CUDA)"
+                else:
+                    openpose_detector = OpenposeDetector.from_pretrained(model_name)
+                    _openpose_backend = f"OPENPOSE:{model_name} (CPU)"
+                print(f"✓ OpenPose 載入完畢: {_openpose_backend}")
+                break
+            except Exception as e:
+                if model_name == model_names[-1]:  # 最後一個也失敗
+                    raise e
+                continue
     except Exception as e:
         print(f"✗ OpenPose 載入失敗: {e}")
+        print(f"  提示: 請確保 controlnet_aux 版本正確")
         openpose_detector = None
 
     return openpose_detector
